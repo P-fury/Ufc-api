@@ -9,6 +9,8 @@ Modifications and maintenance by P-fury.
 # UFC API
 
 UFC API is a lightweight web crawler built in Python to retrieve data on UFC fighters and events.
+After success in finding fighter, program gonna create .CSV file in program folde, titled as figher name.
+Also gonna print JSON file with statistics.
 
 # Installation
 
@@ -21,6 +23,7 @@ pip install ufc_api
 # Usage
 
 Usage is simple. To get stats on a particular fighter returned as a json:
+Name can be with small letters but need 'space' between first name and last name.
 
 ```
 >>> from ufc import get_fighter
@@ -61,6 +64,7 @@ Usage is simple. To get stats on a particular fighter returned as a json:
 ```
 
 To get data on an event, the usage is similar:
+UFC events can be type without 'space'.
 
 ```
 >>> from ufc import get_event

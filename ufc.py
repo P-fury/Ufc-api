@@ -1,11 +1,8 @@
-import sys
-
+import json
 import requests as req
 from lxml import html
 import datetime as dt
 import csv
-import math
-import re
 
 
 def parse_sherdog_fighter(url):
@@ -126,7 +123,6 @@ def get_ufc_stats(url):
         print('Fighter not found')
 
 
-
 def search(query):
     url = 'https://www.google.com/search?q=' + query
     headers = {
@@ -165,9 +161,12 @@ def get_fighter(query):
             writer.writeheader()
             writer.writerow(fighter)
 
-        return "DATA DOWNLODED"
+        fighter_json = json.dumps(fighter)
+
+        return ("DATA ABOUT FIGHTER DOWNLODED", fighter_json)
     except TypeError:
         print('Cannot get fighter !')
+
 
 def get_upcoming_event_links():
     url = 'https://www.ufc.com/events'
@@ -180,10 +179,12 @@ def get_upcoming_event_links():
 
 
 def get_ufc_link_event(query):
-    possible_urls = search(query + " UFC")
-    for url in possible_urls:
-        if ("ufc.com/event/" in url):
-            return url
+    if query.lower().startswith("ufc") and query[3:].isdigit():
+        query_formatted = f"ufc-{query[3:]}"
+    else:
+        query_formatted = query.lower().replace(" ", "-")
+    url = f"https://www.ufc.com/event/{query_formatted}"
+    return url
     raise BaseException("UFC link not found !")
 
 
@@ -215,58 +216,89 @@ def get_name(fight, corner):
 
 
 def parse_event(url, past=True):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"}
-    htm = req.get(url, headers=headers)
-    xml = html.document_fromstring(htm.content)
-    fights_html = xml.xpath("//div[@class='fight-card']/div/div/section/ul/li")
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"}
+        htm = req.get(url, headers=headers)
+        xml = html.document_fromstring(htm.content)
+        fights_html = xml.xpath("//div[@class='fight-card']/div/div/section/ul/li")
 
-    prefix = xml.xpath("//div[@class='c-hero__header']/div[1]/div/h1/text()")[0].strip()
-    names = xml.xpath("//div[@class='c-hero__header']/div[2]/span/span/text()")
+        prefix = xml.xpath("//div[@class='c-hero__header']/div[1]/div/h1/text()")[0].strip()
+        names = xml.xpath("//div[@class='c-hero__header']/div[2]/span/span/text()")
 
-    name = f"{prefix}: {names[0].strip()} vs. {names[-1].strip()}"
+        name = f"{prefix}: {names[0].strip()} vs. {names[-1].strip()}"
 
-    date = dt.datetime.fromtimestamp(int(xml.xpath("//div[@class='c-hero__bottom-text']/div[1]/@data-timestamp")[0]))
-    date = date.strftime("%Y-%m-%d")
-    location = xml.xpath("//div[@class='c-hero__bottom-text']/div[2]/div/text()")[0].split(",")
+        date = dt.datetime.fromtimestamp(
+            int(xml.xpath("//div[@class='c-hero__bottom-text']/div[1]/@data-timestamp")[0]))
+        date = date.strftime("%Y-%m-%d")
+        location = xml.xpath("//div[@class='c-hero__bottom-text']/div[2]/div/text()")[0].split(",")
 
-    event = {
-        'name': name,
-        'date': date,
-        'location': location[1].strip(),
-        'venue': location[0].strip(),
-        'fights': []
-    }
-    for fight in fights_html:
-        this_fight = {
-            'weightclass': fight.xpath("div/div/div/div[2]/div[2]/div[1]/div[2]/text()")[0][:-5],
-            'red corner': {
-                'name': get_name(fight, 'red'),
-                'ranking': get_ranking(fight, 'red'),
-                'odds': fight.xpath("div/div/div/div[4]/div[2]/span[1]/span/text()")[0],
-                'link': fight.xpath("div/div/div/div[2]/div[2]/div[5]/div[1]/a/@href")[0]
-            },
-            'blue corner': {
-                'name': get_name(fight, 'blue'),
-                'ranking': get_ranking(fight, 'blue'),
-                'odds': fight.xpath("div/div/div/div[4]/div[2]/span[3]/span/text()")[0],
-                'link': fight.xpath("div/div/div/div[2]/div[2]/div[5]/div[3]/a/@href")[0]
-            }
+        event = {
+            'name': name,
+            'date': date,
+            'location': location[1].strip(),
+            'venue': location[0].strip(),
+            'fights': []
         }
-        if past:
-            result = fight.xpath("div/div/div/div[2]//div[@class='c-listing-fight__outcome-wrapper']/div/text()")
-            method = fight.xpath("div//div[@class='c-listing-fight__result-text method']/text()")
+        for fight in fights_html:
+            this_fight = {
+                'weightclass': fight.xpath("div/div/div/div[2]/div[2]/div[1]/div[2]/text()")[0][:-5],
+                'red corner': {
+                    'name': get_name(fight, 'red'),
+                    'ranking': get_ranking(fight, 'red'),
+                    'odds': fight.xpath("div/div/div/div[4]/div[2]/span[1]/span/text()")[0],
+                    'link': fight.xpath("div/div/div/div[2]/div[2]/div[5]/div[1]/a/@href")[0]
+                },
+                'blue corner': {
+                    'name': get_name(fight, 'blue'),
+                    'ranking': get_ranking(fight, 'blue'),
+                    'odds': fight.xpath("div/div/div/div[4]/div[2]/span[3]/span/text()")[0],
+                    'link': fight.xpath("div/div/div/div[2]/div[2]/div[5]/div[3]/a/@href")[0]
+                }
+            }
+            if past:
+                result = fight.xpath("div/div/div/div[2]//div[@class='c-listing-fight__outcome-wrapper']/div/text()")
+                method = fight.xpath("div//div[@class='c-listing-fight__result-text method']/text()")
+                finished_round = fight.xpath("div//div[@class='c-listing-fight__result-text round']/text()")
+                finished_time = fight.xpath("div//div[@class='c-listing-fight__result-text time']/text()")
+                if finished_round:
+                    this_fight['round'] = finished_round[0]
+                else:
+                    this_fight['round'] = "N/A"
 
-            finished_round = fight.xpath("div//div[@class='c-listing-fight__result-text round']/text()")
-            finished_time = fight.xpath("div//div[@class='c-listing-fight__result-text time']/text()")
+                if finished_time:
+                    this_fight['time'] = finished_time[0]
+                else:
+                    this_fight['time'] = "N/A"
 
-            this_fight['round'] = finished_round[0]
-            this_fight['time'] = finished_time[0]
-            this_fight['method'] = method[0]
-            this_fight['red corner']['result'] = result[0].strip()
-            this_fight['blue corner']['result'] = result[1].strip()
-        event['fights'].append(this_fight)
-    return event
+                if method:
+                    this_fight['method'] = method[0]
+                else:
+                    this_fight['method'] = "N/A"
+
+                if result:
+                    this_fight['red corner']['result'] = result[0].strip()
+                    if len(result) > 1:
+                        this_fight['blue corner']['result'] = result[1].strip()
+                    else:
+                        this_fight['blue corner']['result'] = "N/A"
+                else:
+                    this_fight['red corner']['result'] = "N/A"
+                    this_fight['blue corner']['result'] = "N/A"
+            event['fights'].append(this_fight)
+
+            csv_filename = f"{event['name'].lower()}.csv"
+
+            with open(csv_filename, mode='w', newline='') as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=event.keys())
+                writer.writeheader()
+                writer.writerow(event)
+
+        event_json = json.dumps(event)
+
+        return ("DATA ABOUT EVENT DOWNLODED", event_json)
+    except IndexError:
+        print('Event Not Found')
 
 
 def get_upcoming_events():
