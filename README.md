@@ -1,3 +1,11 @@
+## Modifications
+
+This project was originally created by Zackary Young.
+
+Modifications and maintenance by P-fury.
+
+
+
 # UFC API
 
 UFC API is a lightweight web crawler built in Python to retrieve data on UFC fighters and events.

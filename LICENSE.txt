@@ -1,6 +1,8 @@
 MIT License
 
-Copyright (c) 2023 Zackary Young
+Original Copyright (c) 2023 Zackary Young
+
+Additional Copyright (c) 2024 P-fury
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +21,15 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Additional Conditions by P-fury:
+
+1. Any modifications to the Software must be documented and a notice of the modifications must be provided to P-fury.
+2. Any derivative works or substantial portions of the Software that are distributed must retain this license, including the additional conditions stated by P-fury.
+
+
+## Modifications
+
+This project was originally created by Zackary Young.
+
+Modifications and maintenance by P-fury.

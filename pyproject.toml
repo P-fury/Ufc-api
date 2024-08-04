@@ -6,7 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "ufc_api"
 version = "0.0.1"
 authors = [
-  { name="Zackary Young", email="zackyoung454@gmail.com" },
+  { name="Zackary Young", email="zackyoung454@gmail.com" }, # Original author
+  { name="P-fury", email="plutocamera@gmail.com" }, # Modified by
 ]
 description = "A web crawler and parser for data on UFC fighters and events"
 readme = "README.md"
@@ -18,4 +19,4 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/FritzCapuyan/ufc-api"
+"Homepage" = "https://github.com/P-fury/Ufc-api"
